@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocuAsk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --primary-dark: #3730a3;
+        --primary-soft: #eef2ff;
+        --bg: #f8fafc;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #dbe4f0;
+        --success: #16a34a;
+        --danger: #dc2626;
+        --card-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(79, 70, 229, 0.16), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(79, 70, 229, 0.1), transparent 24%),
+          var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px 16px;
+      }
+
+      .shell {
+        width: min(100%, 880px);
+      }
+
+      .card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 36px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), transparent 28%);
+        pointer-events: none;
+      }
+
+      .header,
+      .section,
+      .answer-panel {
+        position: relative;
+        z-index: 1;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(79, 70, 229, 0.08);
+        color: var(--primary-dark);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+
+      .subtitle {
+        margin: 12px auto 0;
+        max-width: 560px;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .section {
+        margin-top: 24px;
+      }
+
+      .section-title {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .dropzone {
+        border: 2px dashed rgba(79, 70, 229, 0.25);
+        border-radius: 16px;
+        padding: 30px 22px;
+        text-align: center;
+        background: linear-gradient(180deg, rgba(79, 70, 229, 0.03), rgba(248, 250, 252, 0.9));
+        transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+        cursor: pointer;
+      }
+
+      .dropzone.dragover {
+        border-color: var(--primary);
+        transform: translateY(-1px);
+        background: rgba(79, 70, 229, 0.08);
+      }
+
+      .dropzone-icon {
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 14px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: rgba(79, 70, 229, 0.12);
+        color: var(--primary);
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .dropzone strong {
+        display: block;
+        font-size: 1rem;
+        margin-bottom: 6px;
+      }
+
+      .dropzone p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .file-name {
+        margin-top: 12px;
+        min-height: 24px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .file-name.ready {
+        color: var(--primary-dark);
+        font-weight: 600;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 18px;
+        background: var(--primary);
+        color: #ffffff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+      }
+
+      button:hover:not(:disabled) {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .secondary-button {
+        background: #ffffff;
+        color: var(--primary);
+        border: 1px solid rgba(79, 70, 229, 0.22);
+      }
+
+      .secondary-button:hover:not(:disabled) {
+        background: rgba(79, 70, 229, 0.05);
+      }
+
+      .status {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        display: none;
+      }
+
+      .status.show {
+        display: block;
+      }
+
+      .status.success {
+        background: rgba(22, 163, 74, 0.1);
+        color: #166534;
+      }
+
+      .status.error {
+        background: rgba(220, 38, 38, 0.1);
+        color: #991b1b;
+      }
+
+      .question-row {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+        flex-wrap: wrap;
+      }
+
+      input[type="text"] {
+        flex: 1 1 360px;
+        min-height: 48px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font: inherit;
+        color: var(--text);
+        background: #ffffff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: rgba(79, 70, 229, 0.45);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+      }
+
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #ffffff;
+        display: inline-block;
+        animation: spin 0.8s linear infinite;
+      }
+
+      .spinner.inline {
+        border-color: rgba(79, 70, 229, 0.24);
+        border-top-color: var(--primary);
+      }
+
+      .loading-pill {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .loading-pill.show {
+        display: inline-flex;
+      }
+
+      .answer-panel {
+        margin-top: 22px;
+        display: none;
+      }
+
+      .answer-panel.show {
+        display: block;
+      }
+
+      .answer-label {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .answer-box {
+        background: var(--primary-soft);
+        border-left: 4px solid var(--primary);
+        border-radius: 14px;
+        padding: 18px 18px 18px 20px;
+        color: #312e81;
+        line-height: 1.65;
+        font-size: 0.98rem;
+      }
+
+      .source-box {
+        margin-top: 16px;
+        padding: 18px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+      }
+
+      .source-box h3 {
+        margin: 0 0 10px;
+        font-size: 0.96rem;
+      }
+
+      .source-box p {
+        margin: 0;
+        color: #334155;
+        line-height: 1.7;
+      }
+
+      mark {
+        background: rgba(79, 70, 229, 0.16);
+        color: inherit;
+        padding: 0 2px;
+        border-radius: 4px;
+      }
+
+      .helper-note {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .hidden-input {
+        display: none;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 18px 12px;
+        }
+
+        .card {
+          padding: 24px 18px;
+        }
+
+        .actions,
+        .question-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="card">
+        <header class="header">
+          <div class="eyebrow">PDF Question Answering</div>
+          <h1>DocuAsk</h1>
+          <p class="subtitle">Upload a PDF and ask anything about it</p>
+        </header>
+
+        <section class="section" aria-labelledby="upload-heading">
+          <h2 class="section-title" id="upload-heading">Step 1 - Upload your PDF</h2>
+
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload PDF">
+            <div class="dropzone-icon">PDF</div>
+            <strong>Drag and drop your PDF here</strong>
+            <p>or click to browse your files</p>
+          </div>
+
+          <input class="hidden-input" type="file" id="fileInput" accept="application/pdf,.pdf" />
+          <div class="file-name" id="fileName">No PDF selected yet</div>
+
+          <div class="actions">
+            <button id="uploadButton" type="button" disabled>Upload &amp; Process PDF</button>
+            <div class="loading-pill" id="uploadLoading">
+              <span class="spinner inline" aria-hidden="true"></span>
+              <span>Processing your document...</span>
+            </div>
+          </div>
+
+          <div class="status" id="uploadStatus" role="status" aria-live="polite"></div>
+        </section>
+
+        <section class="section" id="questionSection" aria-labelledby="question-heading" hidden>
+          <h2 class="section-title" id="question-heading">Step 2 - Ask a question</h2>
+
+          <form id="questionForm">
+            <div class="question-row">
+              <input
+                type="text"
+                id="questionInput"
+                placeholder="Ask a question about your document..."
+                autocomplete="off"
+              />
+              <button id="askButton" type="submit">Get Answer</button>
+            </div>
+          </form>
+
+          <div class="actions">
+            <div class="loading-pill" id="answerLoading">
+              <span class="spinner inline" aria-hidden="true"></span>
+              <span>Thinking through your document...</span>
+            </div>
+          </div>
+
+          <div class="status" id="questionStatus" role="status" aria-live="polite"></div>
+
+          <div class="answer-panel" id="answerPanel">
+            <p class="answer-label">Based on your document:</p>
+            <div class="answer-box" id="answerBox"></div>
+
+            <div class="source-box" id="sourceBox">
+              <h3>Relevant section</h3>
+              <p id="sourceExcerpt"></p>
+            </div>
+
+            <div class="actions">
+              <button class="secondary-button" id="resetQuestionButton" type="button">
+                Ask another question
+              </button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const API_BASE_URL =
+        window.location.protocol === "file:"
+          ? "http://127.0.0.1:5000"
+          : window.location.origin;
+      const STOP_WORDS = new Set([
+        "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how",
+        "i", "in", "is", "it", "of", "on", "or", "that", "the", "this", "to",
+        "was", "what", "when", "where", "which", "who", "will", "with", "you",
+        "your"
+      ]);
+
+      let selectedFile = null;
+      let pdfText = "";
+
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const fileName = document.getElementById("fileName");
+      const uploadButton = document.getElementById("uploadButton");
+      const uploadLoading = document.getElementById("uploadLoading");
+      const uploadStatus = document.getElementById("uploadStatus");
+      const questionSection = document.getElementById("questionSection");
+      const questionForm = document.getElementById("questionForm");
+      const questionInput = document.getElementById("questionInput");
+      const askButton = document.getElementById("askButton");
+      const answerLoading = document.getElementById("answerLoading");
+      const questionStatus = document.getElementById("questionStatus");
+      const answerPanel = document.getElementById("answerPanel");
+      const answerBox = document.getElementById("answerBox");
+      const sourceBox = document.getElementById("sourceBox");
+      const sourceExcerpt = document.getElementById("sourceExcerpt");
+      const resetQuestionButton = document.getElementById("resetQuestionButton");
+
+      function setStatus(element, message, type) {
+        element.textContent = message;
+        element.className = `status show ${type}`;
+      }
+
+      function clearStatus(element) {
+        element.textContent = "";
+        element.className = "status";
+      }
+
+      function getFriendlyNetworkMessage(action) {
+        return `We could not reach the DocuAsk server while trying to ${action}. Start the app with start_docuask.bat and open http://127.0.0.1:5000 in your browser.`;
+      }
+
+      function setUploadLoading(isLoading) {
+        uploadButton.disabled = isLoading || !selectedFile;
+        uploadLoading.classList.toggle("show", isLoading);
+      }
+
+      function setAnswerLoading(isLoading) {
+        askButton.disabled = isLoading;
+        questionInput.disabled = isLoading;
+        answerLoading.classList.toggle("show", isLoading);
+      }
+
+      function resetQuestionState() {
+        questionInput.value = "";
+        clearStatus(questionStatus);
+        answerBox.textContent = "";
+        sourceExcerpt.textContent = "";
+        sourceBox.style.display = "block";
+        answerPanel.classList.remove("show");
+      }
+
+      function resetDocumentState() {
+        pdfText = "";
+        questionSection.hidden = true;
+        resetQuestionState();
+      }
+
+      function handleSelectedFile(file) {
+        clearStatus(uploadStatus);
+
+        if (!file) {
+          return;
+        }
+
+        const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+        if (!isPdf) {
+          selectedFile = null;
+          uploadButton.disabled = true;
+          fileName.textContent = "Please choose a PDF file.";
+          fileName.className = "file-name";
+          resetDocumentState();
+          setStatus(uploadStatus, "Only PDF files are supported.", "error");
+          return;
+        }
+
+        selectedFile = file;
+        fileName.textContent = `Selected file: ${file.name}`;
+        fileName.className = "file-name ready";
+        uploadButton.disabled = false;
+        resetDocumentState();
+      }
+
+      async function uploadPdf() {
+        if (!selectedFile) {
+          setStatus(uploadStatus, "Please select a PDF file before uploading.", "error");
+          return;
+        }
+
+        setUploadLoading(true);
+        clearStatus(uploadStatus);
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/upload`, {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(data.error || "We couldn't process that PDF.");
+          }
+
+          if (!data.pdf_text || !data.pdf_text.trim()) {
+            throw new Error("We couldn't extract readable text from that PDF.");
+          }
+
+          pdfText = data.pdf_text;
+          questionSection.hidden = false;
+          questionInput.disabled = false;
+          askButton.disabled = false;
+          answerPanel.classList.remove("show");
+          setStatus(uploadStatus, "PDF ready! Ask your question below", "success");
+          questionInput.focus();
+        } catch (error) {
+          const message =
+            error instanceof TypeError
+              ? getFriendlyNetworkMessage("upload your PDF")
+              : error.message || "Something went wrong while uploading your PDF.";
+          resetDocumentState();
+          setStatus(
+            uploadStatus,
+            message,
+            "error"
+          );
+        } finally {
+          setUploadLoading(false);
+        }
+      }
+
+      async function askQuestion(event) {
+        event.preventDefault();
+
+        const question = questionInput.value.trim();
+        clearStatus(questionStatus);
+
+        if (!pdfText) {
+          setStatus(questionStatus, "Upload a PDF before asking a question.", "error");
+          return;
+        }
+
+        if (!question) {
+          setStatus(questionStatus, "Please type a question about your document.", "error");
+          return;
+        }
+
+        setAnswerLoading(true);
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/ask`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              question,
+              pdf_text: pdfText
+            })
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(data.error || "We couldn't get an answer right now.");
+          }
+
+          const answer = (data.answer || "").trim();
+          if (!answer) {
+            throw new Error("The assistant returned an empty answer. Please try again.");
+          }
+
+          renderAnswer(question, answer);
+        } catch (error) {
+          const message =
+            error instanceof TypeError
+              ? getFriendlyNetworkMessage("answer your question")
+              : error.message || "Something went wrong while getting your answer.";
+          setStatus(
+            questionStatus,
+            message,
+            "error"
+          );
+        } finally {
+          setAnswerLoading(false);
+        }
+      }
+
+      function renderAnswer(question, answer) {
+        answerBox.textContent = answer;
+
+        const excerpt = findRelevantSection(pdfText, question, answer);
+        if (excerpt) {
+          sourceBox.style.display = "block";
+          sourceExcerpt.innerHTML = highlightText(excerpt, question, answer);
+        } else {
+          sourceBox.style.display = "none";
+        }
+
+        answerPanel.classList.add("show");
+      }
+
+      function tokenize(text) {
+        return [...new Set(
+          (text.toLowerCase().match(/[a-z0-9']+/g) || [])
+            .filter((token) => token.length > 2 && !STOP_WORDS.has(token))
+        )];
+      }
+
+      function splitIntoSections(text) {
+        const normalized = text.replace(/\r/g, "").trim();
+        if (!normalized) {
+          return [];
+        }
+
+        const paragraphs = normalized
+          .split(/\n\s*\n+/)
+          .map((part) => part.replace(/\s+/g, " ").trim())
+          .filter(Boolean);
+
+        const chunks = [];
+        const source = paragraphs.length ? paragraphs : [normalized.replace(/\s+/g, " ")];
+
+        source.forEach((section) => {
+          if (section.length <= 700) {
+            chunks.push(section);
+            return;
+          }
+
+          const sentences = section.match(/[^.!?]+[.!?]?/g) || [section];
+          let currentChunk = "";
+
+          sentences.forEach((sentence) => {
+            const nextChunk = currentChunk ? `${currentChunk} ${sentence.trim()}` : sentence.trim();
+            if (nextChunk.length > 700 && currentChunk) {
+              chunks.push(currentChunk);
+              currentChunk = sentence.trim();
+            } else {
+              currentChunk = nextChunk;
+            }
+          });
+
+          if (currentChunk) {
+            chunks.push(currentChunk);
+          }
+        });
+
+        return chunks.filter(Boolean);
+      }
+
+      function findRelevantSection(text, question, answer) {
+        const sections = splitIntoSections(text).slice(0, 500);
+        if (!sections.length) {
+          return "";
+        }
+
+        const questionTerms = tokenize(question);
+        const answerTerms = tokenize(answer).slice(0, 20);
+        const allTerms = [...new Set([...questionTerms, ...answerTerms])];
+
+        let bestSection = sections[0];
+        let bestScore = -1;
+
+        sections.forEach((section) => {
+          const lowerSection = section.toLowerCase();
+          let score = 0;
+
+          questionTerms.forEach((term) => {
+            if (lowerSection.includes(term)) {
+              score += 3;
+            }
+          });
+
+          answerTerms.forEach((term) => {
+            if (lowerSection.includes(term)) {
+              score += 1;
+            }
+          });
+
+          if (allTerms.length && score > bestScore) {
+            bestScore = score;
+            bestSection = section;
+          }
+        });
+
+        return bestSection;
+      }
+
+      function escapeHtml(text) {
+        return text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeRegExp(text) {
+        return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
+
+      function highlightText(section, question, answer) {
+        const highlightTerms = [...new Set([...tokenize(question), ...tokenize(answer)])]
+          .sort((a, b) => b.length - a.length)
+          .slice(0, 14);
+
+        let html = escapeHtml(section);
+        highlightTerms.forEach((term) => {
+          const pattern = new RegExp(`(${escapeRegExp(term)})`, "gi");
+          html = html.replace(pattern, "<mark>$1</mark>");
+        });
+
+        return html;
+      }
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dropzone.classList.add("dragover");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dropzone.classList.remove("dragover");
+        });
+      });
+
+      dropzone.addEventListener("click", () => fileInput.click());
+      dropzone.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      dropzone.addEventListener("drop", (event) => {
+        const [file] = event.dataTransfer.files;
+        handleSelectedFile(file);
+      });
+
+      fileInput.addEventListener("change", (event) => {
+        const [file] = event.target.files;
+        handleSelectedFile(file);
+      });
+
+      uploadButton.addEventListener("click", uploadPdf);
+      questionForm.addEventListener("submit", askQuestion);
+      resetQuestionButton.addEventListener("click", () => {
+        questionInput.value = "";
+        clearStatus(questionStatus);
+        answerPanel.classList.remove("show");
+        questionInput.focus();
+      });
+    </script>
+  </body>
+</html>
